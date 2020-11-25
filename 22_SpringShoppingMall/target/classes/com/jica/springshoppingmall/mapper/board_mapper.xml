@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+                        
+                                           
+<mapper namespace="board_db">
+
+	<!-- 글 리스트 가져오기 -->
+	<!-- 크냐 작냐와 같은 연산자를 사용할 때 는 xml에서 제공하는 CDATA 형태로 작성한다. -->
+	<select id="get_board_list" parameterType="map" resultType="com.jica.springshoppingmall.beans.BoardContentBean">
+		<![CDATA[ 
+		select * from 
+		(select rownum as row_idx, r1.* from (
+		
+		select a1.board_content_idx,a1.board_content_subject, 
+		       a2.user_name as board_writer_name,
+		       to_char(a1.board_content_date, 'YYYY-MM-DD') as board_content_date
+		from JICA8_BOARD_CONTENT_TABLE a1, jica8_user_table a2
+		where a1.board_writer_idx = a2.user_idx and
+			  a1.board_category_idx = #{board_category_idx}
+		order by board_content_idx desc
+		
+		) r1) r2
+	    where r2.row_idx  >= #{min} and r2.row_idx <= #{max}
+	    ]]>
+	</select>
+	
+	<!-- 전체 글의 개수를 가져온다 -->
+	<select id='get_board_cnt' resultType="int">
+		select count(*) from JICA8_BOARD_CONTENT_TABLE
+	</select>
+	<!-- 게시판 정보를 불러온다 -->
+	<select id='get_board_info_idx' resultType="com.jica.springshoppingmall.beans.BoardCategoryBean">
+		select board_category_idx, board_category_name
+		from jica8_board_category_table
+		where board_category_status = 1
+	</select>
+	
+	<!-- 게시판 이름 불러오는 것 --> 
+	<select id="get_board_info_name" parameterType="int" resultType="com.jica.springshoppingmall.beans.BoardCategoryBean">
+		select board_category_idx , board_category_name
+		from JICA8_BOARD_CATEGORY_TABLE
+		where board_category_idx = #{id}
+	</select>
+	
+	<!-- 글작성 -->
+	
+	<insert id="add_content" parameterType="com.jica.springshoppingmall.beans.BoardContentBean">
+		insert into jica8_board_content_table 
+			(board_content_idx, board_content_subject, board_content_text, board_content_status, board_content_date, board_content_ip , board_answer_chk,board_writer_idx,board_category_idx)
+		VALUES(JICA8_BOARD_CONTENT_SEQ.nextval, #{board_content_subject}, #{board_content_text},1,
+ 				sysdate, 1, 1 , #{board_writer_idx} , #{board_category_idx})
+	</insert>
+	
+	<select id="get_new_board_idx" resultType="int">
+		select JICA8_BOARD_CONTENT_SEQ.currval from dual
+	</select>
+	
+	<!-- 게시글 정보를 가져온다. -->
+	<select id='get_board_info' resultType="com.jica.springshoppingmall.beans.BoardContentBean">
+		select a1.board_content_subject, a1.board_content_text, a2.user_name as board_writer_name
+		from jica8_board_content_table a1, jica8_user_table a2
+		where a1.board_writer_idx = a2.user_idx and 
+			a1.board_content_idx = #{board_content_idx}
+	</select>
+	
+	
+	<!-- 게시글 수정 -->
+	<update id="board_content_modify" parameterType="com.jica.springshoppingmall.beans.BoardContentBean">
+      update JICA8_BOARD_CONTENT_TABLE
+         set board_content_subject = #{board_content_subject}, board_content_text = #{board_content_text}
+      where board_content_idx = #{board_content_idx}
+   </update>
+	
+	<!-- 삭제하기 -->
+	<delete id="delete_content" parameterType="com.jica.springshoppingmall.beans.BoardContentBean">
+		delete from jica8_board_content_table
+		where board_content_idx = #{board_content_idx} and board_writer_idx = #{board_writer_idx}
+	</delete>
+	
+	
+</mapper>
+
+
+

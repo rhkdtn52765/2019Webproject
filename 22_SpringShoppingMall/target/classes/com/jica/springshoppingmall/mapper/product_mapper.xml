@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+                        
+                                           
+<mapper namespace="product_db">
+
+
+
+	
+	<!-- 전체 글의 개수를 가져온다 -->
+	<select id='get_product_cnt' parameterType="int" resultType="int">
+		select count(*) from JICA8_PRODUCT_TABLE where product_category_idx = #{id}
+	</select>
+		
+	<!-- 상품 이름 불러오는 것 --> 
+	<select id="get_product_info_name" parameterType="int" resultType="com.jica.springshoppingmall.beans.ProductCategoryBean">
+		select product_category_idx , product_category_name
+		from JICA8_PRODUCT_CATEGORY_TABLE
+		where product_category_idx = #{id}
+	</select>
+	
+	<!-- 상품 정보를 불러온다 -->
+	<select id='get_product_info_idx' resultType="com.jica.springshoppingmall.beans.ProductCategoryBean">
+		select product_category_idx, product_category_name
+		from jica8_product_category_table
+		where product_category_status = 1
+	</select>
+
+	
+	<!-- 상품 정보를 가져온다. -->
+	<select id='get_product_list' parameterType="map" resultType="com.jica.springshoppingmall.beans.ProductBean">
+		<![CDATA[ 
+		select * from 
+		(select rownum as row_idx, r1.* from (
+		
+		select product_image_file , product_name , product_price , product_idx, product_category_idx
+		from jica8_product_table
+		where product_category_idx = #{product_category_idx}
+		
+		) r1) r2
+	    where r2.row_idx  >= #{min} and r2.row_idx <= #{max}
+	    ]]>
+	</select>
+
+		<!-- 상품 상세 정보를 가져온다. -->
+	<select id='get_product_detail' parameterType="map" resultType="com.jica.springshoppingmall.beans.ProductBean">
+	
+	
+		select product_image_file , product_name , product_price ,product_image_link
+		from jica8_product_table
+		where product_idx = #{product_idx}
+		
+		
+	</select>
+
+	
+</mapper>
+
+
+
